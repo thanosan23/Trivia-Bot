@@ -42,44 +42,51 @@ def change_score(user : str, change : int):
 async def on_ready():
     print(f"Bot {bot.user} is ready!")
 
+@bot.slash_command(name="hello")
+async def hello(ctx):
+    await  ctx.respond("Hello!")
+
 @bot.command()
 async def trivia(ctx : commands.Context):
     global game_info
-    data = requests.get("https://opentdb.com/api.php?amount=1&type=multiple")
-    json = data.json()
+    if not game_info["running"]:
+        data = requests.get("https://opentdb.com/api.php?amount=1&type=multiple")
+        json = data.json()
 
-    # parse the request output
-    result = json['results'][0]
+        # parse the request output
+        result = json['results'][0]
 
-    question = result["question"]
+        question = result["question"]
 
-    correct_answer = result["correct_answer"]
-    incorrect_answers = result["incorrect_answers"]
+        correct_answer = result["correct_answer"]
+        incorrect_answers = result["incorrect_answers"]
 
-    # decode html entities
-    question = html.unescape(question)
-    correct_answer = html.unescape(correct_answer)
-    incorrect_answers = [ html.unescape(answer) for answer in incorrect_answers ]
+        # decode html entities
+        question = html.unescape(question)
+        correct_answer = html.unescape(correct_answer)
+        incorrect_answers = [ html.unescape(answer) for answer in incorrect_answers ]
 
-    # shuffle all the answers
-    answers = []
-    answers.extend([correct_answer])
-    answers.extend(incorrect_answers)
-    random.shuffle(answers)
+        # shuffle all the answers
+        answers = []
+        answers.extend([correct_answer])
+        answers.extend(incorrect_answers)
+        random.shuffle(answers)
 
-    # create an embed
-    embed = discord.Embed(title=question)
+        # create an embed
+        embed = discord.Embed(title=question)
 
-    for i in range(len(answers)):
-        if answers[i] == correct_answer:
-            game_info["correct_answer"] = chr(ord('a') + i)
-        embed.add_field(name=f"Option {chr(ord('A')+i)}", value=answers[i])
+        for i in range(len(answers)):
+            if answers[i] == correct_answer:
+                game_info["correct_answer"] = chr(ord('a') + i)
+            embed.add_field(name=f"Option {chr(ord('A')+i)}", value=answers[i])
 
-    game_info["question"] = question
+        game_info["question"] = question
 
-    game_info["running"] = True
+        game_info["running"] = True
 
-    await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Trivia question already exists!")
 
 @bot.command()
 async def pick(ctx : commands.Context, choice : str):
