@@ -11,11 +11,12 @@ from dotenv import load_dotenv
 
 import redis
 
+load_dotenv('.env')
+
 leaderboard_db = redis.Redis(host=os.environ['DB_URL'],
                              port=int(os.environ['DB_PORT']),
                              password=os.environ['DB_PASSWORD'])
 
-load_dotenv('.env')
 
 intents = discord.Intents.all()
 
