@@ -11,7 +11,9 @@ from dotenv import load_dotenv
 
 import redis
 
-leaderboard_db = redis.Redis(host='localhost', port=6379)
+leaderboard_db = redis.Redis(host=os.environ['DB_URL'],
+                             port=int(os.environ['DB_PORT']),
+                             password=os.environ['DB_PASSWORD'])
 
 load_dotenv('.env')
 
@@ -20,7 +22,6 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix= '!', intents=intents)
 
 game_info = { "running": False, "question": None, "correct_answer": None }
-
 
 def change_score(user : str, change : int):
     global leaderboard_db
@@ -36,7 +37,6 @@ def change_score(user : str, change : int):
     leaderboard_db.set(user, new_score)
 
     return new_score
-
 
 @bot.event
 async def on_ready():
@@ -120,4 +120,5 @@ async def score(ctx : commands.Context):
     await ctx.send(f"Your score is: {score}!")
 
 
-bot.run(os.environ['DISCORD_TOKEN'])
+if __name__ == "__main__":
+    bot.run(os.environ['DISCORD_TOKEN'])
