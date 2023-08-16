@@ -17,6 +17,7 @@ DISCORD_TOKEN="enter token for discord bot"
 DB_URL="enter upstash db url"
 DB_PORT="enter upstash db port"
 DB_PASSWORD="enter upstash db password"
+HUGGINGFACE_TOKEN="enter your huggingface api token here"
 ```
 
 Then run:

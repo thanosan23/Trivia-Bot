@@ -11,18 +11,23 @@ from dotenv import load_dotenv
 
 import redis
 
+from ai_tools import summarize, Conversation
+
 load_dotenv('.env')
 
-leaderboard_db = redis.Redis(host=os.environ['DB_URL'],
+# connects to the leaderboard database through redis
+leaderboard_db = redis.Redis(host=os.environ['DB_HOST'],
                              port=int(os.environ['DB_PORT']),
                              password=os.environ['DB_PASSWORD'])
-
 
 intents = discord.Intents.all()
 
 bot = commands.Bot(command_prefix= '!', intents=intents)
 
 game_info = { "running": False, "question": None, "correct_answer": None }
+
+
+conversation = Conversation()
 
 def change_score(user : str, change : int):
     global leaderboard_db
@@ -114,12 +119,27 @@ async def pick(ctx : commands.Context, choice : str):
 @bot.command()
 async def score(ctx : commands.Context):
     global leaderboard_db
+    # check if user does not exist in the leaderboard
     if not leaderboard_db.exists(ctx.author.name):
         leaderboard_db.set(ctx.author.name, 0)
+
+    # get the score from redis and send that to the discord client
     score = leaderboard_db.get(ctx.author.name)
     score = int(score.decode('utf-8'))
     await ctx.send(f"Your score is: {score}!")
 
+
+@bot.slash_command(name="summary")
+async def summary(ctx : commands.Context, payload : str):
+    summary = summarize(payload)
+    await ctx.respond(summary)
+
+@bot.command()
+async def talk(ctx : commands.Context, text : str):
+    global conversation
+    response = conversation.talk(text)
+    print(conversation.past_ai_responses, conversation.past_user_inputs)
+    await ctx.send(response)
 
 if __name__ == "__main__":
     bot.run(os.environ['DISCORD_TOKEN'])
