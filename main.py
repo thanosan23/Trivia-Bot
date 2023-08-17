@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import redis
 
 from ai_tools import summarize, Conversation
+from translation import translate_text
+from wiki import get_summary
 
 load_dotenv('.env')
 
@@ -138,8 +140,17 @@ async def summary(ctx : commands.Context, payload : str):
 async def talk(ctx : commands.Context, text : str):
     global conversation
     response = conversation.talk(text)
-    print(conversation.past_ai_responses, conversation.past_user_inputs)
     await ctx.send(response)
+
+@bot.command()
+async def translate(ctx : commands.Context, language : str, text : str):
+    translation = translate_text(text, language=language)
+    await ctx.reply(translation)
+
+@bot.command()
+async def info(ctx : commands.Context, topic : str):
+    info_topic = get_summary(topic)
+    await ctx.reply(info_topic)
 
 if __name__ == "__main__":
     bot.run(os.environ['DISCORD_TOKEN'])
